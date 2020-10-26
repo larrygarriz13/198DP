@@ -19,6 +19,7 @@ end_date = "2020-08-12"
 num_days = 4
 num_sites = 100
 num_user = 100
+n_cnt = 0
 
 class User:
     def __init__(self, id=0): #why is this = 0? ans: default 
@@ -94,6 +95,7 @@ def fill_data(data, row):
                 
 def noise(user_list, DP, start, limit): #possibly use start and limit to define a range, allow multiple threads to process different sections?
     h = start
+    global n_cnt
     for u in range(start,limit):
         for a in range(len(user_list[u].data)): #day 
             for b in range(len(user_list[u].data[a])): #hour
@@ -113,7 +115,8 @@ def noise(user_list, DP, start, limit): #possibly use start and limit to define 
                           user_list[u].data[a][b][c] = user_list[u].data[a][b][c] + 1
                       else:
                           user_list[u].data[a][b][c] = user_list[u].data[a][b][c] - 1
-                         
+                          
+                      n_cnt = n_cnt + 1
                      
                     #[solution 2]: flip the bit (majority of noise will be flips to 1)
 
@@ -164,6 +167,8 @@ for row in range(len(csv_reader)):
             fill_data(u.data, csv_reader.loc[row])
         else:
             print("not here")
+            u = User(int(csv_reader.loc[row][0]))
+            user_list.append(u)
             id_list.append(int(csv_reader.loc[row][0]))
             fill_data(u.data, csv_reader.loc[row])
            
@@ -174,7 +179,7 @@ for row in range(len(csv_reader)):
     line_count += 1
 print(f'Processed {line_count} lines.')
 
-
+old = user_list
 
 pd.DataFrame(user_list[0].data[1]).to_csv("johnkoch.csv")
 
@@ -185,8 +190,8 @@ for x in range(0, num_days):
 for u in user_list: #adds together all the day 1 and day 2 logs
     n[0] = n[0] + u.data[0]
     n[1] = n[1] + u.data[1]
-# pd.DataFrame(n[0]).to_csv("day0.csv")
-# pd.DataFrame(n[1]).to_csv("day1.csv")
+pd.DataFrame(n[0]).to_csv("day0.csv")
+pd.DataFrame(n[1]).to_csv("day1.csv")
 m = [np.zeros((num_user))]
 
 for row in n[0]:
@@ -198,7 +203,7 @@ ts = np.transpose(ts)
 #DP Noising
 scores = []
 
-e = 0.05
+e = 0.1
 DP = 1/(math.exp(e/2)+1)
 
 
@@ -216,8 +221,8 @@ for x in range(0, num_days):
 for u in user_list:
     n[0] = n[0] + u.data[0]
     n[1] = n[1] + u.data[1]
-# pd.DataFrame(n[0]).to_csv("day0DP.csv")
-# pd.DataFrame(n[1]).to_csv("day1DP.csv") 
+pd.DataFrame(n[0]).to_csv("day0DP.csv")
+pd.DataFrame(n[1]).to_csv("day1DP.csv") 
 m = [np.zeros((num_user))]
 
 for row in n[0]:
