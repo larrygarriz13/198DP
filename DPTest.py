@@ -186,6 +186,7 @@ for row in range(len(csv_reader)):
             #add array to total array
             noise_count = noise_count + data
             
+            del u
             
             u = User(int(csv_reader.loc[row][0]))
             name = str(csv_reader.loc[row][1])
