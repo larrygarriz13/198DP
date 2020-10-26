@@ -9,7 +9,7 @@ import numpy as np
 import csv
 import pandas as pd
 import datetime
-import random as rd
+import random 
 import math
 import threading
 import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ real_count = []
 n_cnt = 0
 
 
-e = 0.1
+e = 0.8
 DP = 1/(math.exp(e/2)+1)
 
 class User:
@@ -104,6 +104,14 @@ def fill_data(data, row):
 def noise(data, DP): #possibly use start and limit to define a range, allow multiple threads to process different sections?
     global n_cnt
     
+    #sol 4 init
+    percent = int(0.3*num_sites)
+    choices = list(range(num_sites))
+    random.shuffle(choices)
+    res = choices[-percent:] 
+    
+    
+    
     for a in range(len(data)): #day 
         for b in range(len(data[a])): #hour
             l = 0
@@ -117,23 +125,45 @@ def noise(data, DP): #possibly use start and limit to define a range, allow mult
                  
                   #[solution 1]: 50% noise negative 
                  
-                  f = int(np.random.binomial(1, 0.5, 1))
-                  if(f==1):
-                      data[a][b][c] = data[a][b][c] + 1
-                  else:
-                      data[a][b][c] = data[a][b][c] - 1
+                  # f = int(np.random.binomial(1, 0.5, 1))
+                  # if(f==1):
+                  #     data[a][b][c] = data[a][b][c] + 1
+                  # else:
+                  #     data[a][b][c] = data[a][b][c] - 1
                       
                   n_cnt = n_cnt + 1                     
                  
                 #[solution 2]: flip the bit (majority of noise will be flips to 1)
     
-                  #if(user_list[u].data[a][b][c]==0):
-                      #user_list[u].data[a][b][c] = 1
-                  #else:
-                      #user_list[u].data[a][b][c] = 0
+                  # if(data[a][b][c]==0):
+                  #    data[a][b][c] = 1
+                  # else:
+                  #    data[a][b][c] = 0
                      
                 #[solution 3]: Laplace distribution      
-                #user_list[u].data[a][b][c] = user_list[u].data[a][b][c] + np.random.laplace()
+                # data[a][b][c] = data[a][b][c] + np.random.laplace(0, DP)
+                
+                #[solution 4]: only noise certain parts of data
+                p = 0.4
+                q = 0.6
+                num= q*(1-p)
+                denom = p*(1-q)
+                DP = (math.log(num/denom))
+
+
+               
+                if(data[a][b][c] >= 1):
+                    if(c in res):
+                        data[a][b][c] += np.random.binomial(1,q)
+                        # data[a][b][c] += -1
+                else:
+                    data[a][b][c] -= np.random.binomial(1,p)
+                    
+                    if(data[a][b][c] < 0):
+                        data[a][b][c] = 0
+                
+                data[a][b][c] = data[a][b][c]
+                                    
                         
                     
     return data
