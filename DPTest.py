@@ -138,6 +138,8 @@ id_list = []
 #dummy.csv is a two-day compiled list of user movement logs
 
 csv_reader = pd.read_csv('dummy.csv', parse_dates=True)        #switched to pandas dataframe for easier parsing
+#sort id from smallest to largest
+csv_reader.set_index(['PERSON_ID']).sort_index()
 csv_reader['TIME'] = pd.to_datetime(csv_reader.TIME)
 line_count = 0
 name = ""
@@ -196,7 +198,7 @@ ts = np.transpose(ts)
 #DP Noising
 scores = []
 
-e = 0.1
+e = 0.05
 DP = 1/(math.exp(e/2)+1)
 
 
