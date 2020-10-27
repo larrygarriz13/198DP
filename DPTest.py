@@ -22,7 +22,7 @@ num_user = 100
 noise_count = []
 real_count = []
 n_cnt = 0
-
+# user_list = []
 
 e = 0.8
 DP = 1/(math.exp(e/2)+1)
@@ -37,8 +37,7 @@ class User:
         # self.data = [np.zeros((24, 1000)), np.zeros((24, 1000)), np.zeros((24, 1000)), np.zeros((24, 1000))]
         self.id = id
 
-u = User(1)
-# user_list = []
+
 
 def fill_data(data, row):
     
@@ -105,10 +104,10 @@ def noise(data, DP): #possibly use start and limit to define a range, allow mult
     global n_cnt
     
     #sol 4 init
-    percent = int(0.3*num_sites)
-    choices = list(range(num_sites))
-    random.shuffle(choices)
-    res = choices[-percent:] 
+    # percent = int(0.3*num_sites)
+    # choices = list(range(num_sites))
+    # random.shuffle(choices)
+    # res = choices[-percent:] 
     
     
     
@@ -125,13 +124,13 @@ def noise(data, DP): #possibly use start and limit to define a range, allow mult
                  
                   #[solution 1]: 50% noise negative 
                  
-                  # f = int(np.random.binomial(1, 0.5, 1))
-                  # if(f==1):
-                  #     data[a][b][c] = data[a][b][c] + 1
-                  # else:
-                  #     data[a][b][c] = data[a][b][c] - 1
+                   f = int(np.random.binomial(1, 0.5, 1))
+                   if(f==1):
+                       data[a][b][c] = data[a][b][c] + 1
+                   else:
+                       data[a][b][c] = data[a][b][c] - 1
                       
-                  n_cnt = n_cnt + 1                     
+                n_cnt = n_cnt + 1                     
                  
                 #[solution 2]: flip the bit (majority of noise will be flips to 1)
     
@@ -144,25 +143,25 @@ def noise(data, DP): #possibly use start and limit to define a range, allow mult
                 # data[a][b][c] = data[a][b][c] + np.random.laplace(0, DP)
                 
                 #[solution 4]: only noise certain parts of data
-                p = 0.4
-                q = 0.6
-                num= q*(1-p)
-                denom = p*(1-q)
-                DP = (math.log(num/denom))
+                # p = 0.4
+                # q = 0.6
+                # num= q*(1-p)
+                # denom = p*(1-q)
+                # DP = (math.log(num/denom))
 
 
                
-                if(data[a][b][c] >= 1):
-                    if(c in res):
-                        data[a][b][c] += np.random.binomial(1,q)
-                        # data[a][b][c] += -1
-                else:
-                    data[a][b][c] -= np.random.binomial(1,p)
+                # if(data[a][b][c] >= 1):
+                #     if(c in res):
+                #         data[a][b][c] += np.random.binomial(1,q)
+                #         # data[a][b][c] += -1
+                # else:
+                #     data[a][b][c] -= np.random.binomial(1,p)
                     
-                    if(data[a][b][c] < 0):
-                        data[a][b][c] = 0
+                #     if(data[a][b][c] < 0):
+                #         data[a][b][c] = 0
                 
-                data[a][b][c] = data[a][b][c]
+                # data[a][b][c] = data[a][b][c]
                                     
                         
                     
@@ -230,37 +229,6 @@ for row in range(len(csv_reader)):
     
 print(f'Processed {line_count} lines.')
 
-
-
-# pd.DataFrame(user_list[0].data[1]).to_csv("johnkoch.csv")
-
-# n= []
-# for x in range(0, num_days):
-#     n.append(np.zeros((24, num_sites)))
-
-
-
-# #DP Noising
-# scores = []
-
-# e = 0.05
-# DP = 1/(math.exp(e/2)+1)
-
-
-# #insert threads here? call noise function
-
-# noise(user_list, DP,  0, int(len(user_list)))
-
-# #producing noised output CSVs
-# # pd.DataFrame(user_list[0].data[1]).to_csv("johnkochDP.csv")
-# test = user_list[0].data[1]
-# n= []
-# for x in range(0, num_days):
-#     n.append(np.zeros((24, num_sites)))
-
-# for u in user_list:
-#     n[0] = n[0] + u.data[0]
-#     n[1] = n[1] + u.data[1]
 
 pd.DataFrame(real_count[0]).to_csv("day0.csv")
 pd.DataFrame(real_count[1]).to_csv("day1.csv") 
