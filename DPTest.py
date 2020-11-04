@@ -147,7 +147,7 @@ def noise(data, DP): #possibly use start and limit to define a range, allow mult
                 # q = 0.6
                 # num= q*(1-p)
                 # denom = p*(1-q)
-                # DP = (math.log(num/denom))
+                # e = (math.log(num/denom))
 
 
                
@@ -223,6 +223,18 @@ for row in range(len(csv_reader)):
         else:
             name = str(csv_reader.loc[row][1])
             fill_data(u.data, csv_reader.loc[row])
+            
+            
+            if(len(csv_reader) -1 == line_count):
+                #add real value to total
+                real_count = real_count + u.data
+                
+                #noise the old user array
+                data = noise(u.data, DP)
+                
+                #add array to total array
+                noise_count = noise_count + data
+                
                            
     # print("\n")
     line_count += 1
