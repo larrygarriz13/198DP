@@ -13,9 +13,12 @@ from trumania.core.operations import FieldLogger, Apply
 from trumania.core.clock import CyclicTimerGenerator, CyclicTimerProfile
 
 num_user = 100
-num_sites = 100
 hrs = "48h"
-#2 days
+#4 days
+
+#for changing num logs per user per hour
+#2 logs per hr = 0.5h, 5 logs per hour = 1/5=0.2h
+step_dur = "0.5h"
 
 setup_logging()
 start_date = pd.Timestamp("09 Aug 2020 00:00:00")
@@ -24,10 +27,10 @@ example1 = circus.Circus(
     name="example1",
     master_seed=123456,
     start=start_date,
-    step_duration=pd.Timedelta("1h"))
+    step_duration=pd.Timedelta(step_dur))
 
 person = example1.create_population(
-    name="person", size=100,
+    name="person", size=num_user,
     ids_gen=SequencialGenerator(prefix=""))
 
 person.create_attribute(
@@ -37,6 +40,7 @@ person.create_attribute(
 							
 activity =(100, 100, 100, 100, 54, 54, 54, 26, 20, 22)
 normed_activity = [float(i)/sum(activity) for i in activity]
+
 """
 sites = SequencialGenerator(prefix="").generate(num_sites)										
 random_site_gen = NumpyRandomGenerator(method="choice", a=sites,
@@ -65,9 +69,9 @@ for i in range(3):
 
 #activity levels
 #work hours
-story_timer_gen = WorkHoursTimerGenerator(
-    clock=example1.clock, 
-    seed=next(example1.seeder), start_hour=5, end_hour=20)
+# story_timer_gen = WorkHoursTimerGenerator(
+#     clock=example1.clock, 
+#     seed=next(example1.seeder), start_hour=5, end_hour=20)
 
 #default
 story_timer_gen = DefaultDailyTimerGenerator(
@@ -76,8 +80,8 @@ story_timer_gen = DefaultDailyTimerGenerator(
 
 #defined
 #http://realimpactanalytics.github.io/trumania/_modules/trumania/components/time_patterns/profilers.html
-start_hour = 9
-end_hour = 17
+start_hour = 7
+end_hour = 19
 # if start_hour = 0, before_work is empty
 before_work = [0] * start_hour
 during_work = [1.] * (end_hour - start_hour + 1)
@@ -86,10 +90,14 @@ after_work = [0] * (23 - end_hour)
 
 # the sum of before_work, during_work and after_work is always 24
 week_day_profile = before_work + during_work + after_work
-weekend_day_profile = [0] * 24
+# weekend_day_profile = [0] * 24
 
-week_profile = week_day_profile * 5 + weekend_day_profile * 2
-week_profile = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 1.0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+# week_profile = week_day_profile * 5 + weekend_day_profile * 2
+# week_profile = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 1.0, 1.0, 0, 0, 0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+#for testing purposes, ensures that all days have logs
+week_profile = week_day_profile * 7
+
 
 story_timer_gen = CyclicTimerGenerator(
     clock=example1.clock, 
@@ -142,7 +150,7 @@ hello_world.set_operations(
 )
 
 example1.run(
-    duration=pd.Timedelta("96h"),
+    duration=pd.Timedelta(hrs),
     log_output_folder="output/example1",
     delete_existing_logs=True
 )
