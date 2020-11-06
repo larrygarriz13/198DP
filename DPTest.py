@@ -14,17 +14,19 @@ import math
 import threading
 import matplotlib.pyplot as plt
 
+
+# yyyy-mm-dd
 start_date = "2020-08-09"
-end_date = "2020-08-12"
-num_days = 4
-num_sites = 100
-num_user = 100
+end_date = "2020-08-09"
+num_days = 1
+num_sites = 625
+num_user = 600
+
 noise_count = []
 real_count = []
 n_cnt = 0
-# user_list = []
 
-e = 0.8
+e = 5
 DP = 1/(math.exp(e/2)+1)
 
 class User:
@@ -41,8 +43,8 @@ class User:
 
 def fill_data(data, row):
     
-    month = int(row["TIME"].month)
-    day = int(row["TIME"].day)
+    month = int(row["TIME"].day)
+    day = int(row["TIME"].month)
     year = int(row["TIME"].year)
     hour = int(row["TIME"].hour)         #already in military time
     minute = int(row["TIME"].minute)
@@ -242,10 +244,10 @@ for row in range(len(csv_reader)):
 print(f'Processed {line_count} lines.')
 
 
-pd.DataFrame(real_count[0]).to_csv("day0.csv")
-pd.DataFrame(real_count[1]).to_csv("day1.csv") 
-pd.DataFrame(noise_count[0]).to_csv("day0DP.csv")
-pd.DataFrame(noise_count[1]).to_csv("day1DP.csv") 
+# pd.DataFrame(real_count[0]).to_csv("day0.csv")
+# pd.DataFrame(real_count[1]).to_csv("day1.csv") 
+# pd.DataFrame(noise_count[0]).to_csv("day0DP.csv")
+# pd.DataFrame(noise_count[1]).to_csv("day1DP.csv") 
 
 #real counts
 n= []
@@ -254,9 +256,10 @@ for x in range(0, num_days):
 n = np.array(n)
 n = n + real_count[0]
 
-m = [np.zeros((num_user))]
+m = [np.zeros((num_sites))]
 for row in n[0]:
     m = m + row
+
 ts = pd.Series(m[0])
 ts = np.transpose(ts)
 
@@ -268,7 +271,7 @@ for x in range(0, num_days):
 n = np.array(n)
 n = n + noise_count[0]
 
-m = [np.zeros((num_user))]
+m = [np.zeros((num_sites))]
 for row in n[0]:
     m = m + row
 ds = pd.Series(m[0])
