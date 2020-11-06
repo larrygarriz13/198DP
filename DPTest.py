@@ -13,14 +13,26 @@ import random
 import math
 import threading
 import matplotlib.pyplot as plt
+import time
+
+import multiprocessing as mp
+from itertools import repeat
+from multiprocessing import Process, Manager
+from multiprocessing import Pool
+
+#system info
+num_processes = mp.cpu_count()
+print("Number of cpu : ", num_processes)
+
+
 
 
 # yyyy-mm-dd
 start_date = "2020-08-09"
-end_date = "2020-08-09"
-num_days = 1
-num_sites = 625
-num_user = 600
+end_date = "2020-08-12"
+num_days = 4
+num_sites = 100
+num_user = 100
 
 noise_count = []
 real_count = []
@@ -28,6 +40,7 @@ n_cnt = 0
 
 e = 5
 DP = 1/(math.exp(e/2)+1)
+    
 
 class User:
     def __init__(self, id=0): #why is this = 0? ans: default 
@@ -43,8 +56,8 @@ class User:
 
 def fill_data(data, row):
     
-    month = int(row["TIME"].day)
-    day = int(row["TIME"].month)
+    month = int(row["TIME"].month)
+    day = int(row["TIME"].day)
     year = int(row["TIME"].year)
     hour = int(row["TIME"].hour)         #already in military time
     minute = int(row["TIME"].minute)
@@ -169,148 +182,186 @@ def noise(data, DP): #possibly use start and limit to define a range, allow mult
                     
     return data
 
-#real_count: data[day_index][hour][loc_id]
-for x in range(0, num_days):
-    real_count.append(np.zeros((24, num_sites))) 
+def work(data, DP, user_no):
+    print("Worker has processed # " + str(user_no))
+    noised_data = noise(data, DP)
+    return noised_data
+
+
+if __name__ == "__main__":
+        
+
     
-real_count = np.array(real_count)
-noise_count = np.array(real_count)
-
-# Section takes CSV data and stores to 2-D per-user array (24hrsx1000loc)
-#dummy.csv is a two-day compiled list of user movement logs
-
-csv_reader = pd.read_csv('dummy.csv', parse_dates=True)        #switched to pandas dataframe for easier parsing
-#sort id from smallest to largest
-csv_reader = csv_reader.set_index(['PERSON_ID']).sort_index()
-print(csv_reader)
-csv_reader['TIME'] = pd.to_datetime(csv_reader.TIME)
-csv_reader.to_csv('sorted_dummy.csv')
-
-
-csv_reader = pd.read_csv('sorted_dummy.csv', parse_dates=True)   
-csv_reader['TIME'] = pd.to_datetime(csv_reader.TIME)
-
-line_count = 0
-name = ""
-noise_cnt = 0
-
-for row in range(len(csv_reader)):
-    print(row)
-    if(line_count == 0):
-        print("FIRST")
-        print(csv_reader.loc[row])
-        u = User(int(csv_reader.loc[row][0]))
-        name = str(csv_reader.loc[row][1])
-        fill_data(u.data, csv_reader.loc[row])
-    else:
-        if(csv_reader.loc[row][1] != name):
-            print("before new user parse")
-            noise_cnt += 1
-            
-            
-            #add real value to total
-            real_count = real_count + u.data
-            
-            #noise the old user array
-            data = noise(u.data, DP)
-            
-            #add array to total array
-            noise_count = noise_count + data
-            
-            del u
-            
-            u = User(int(csv_reader.loc[row][0]))
-            name = str(csv_reader.loc[row][1])
-            fill_data(u.data, csv_reader.loc[row])
-        else:
-            name = str(csv_reader.loc[row][1])
-            fill_data(u.data, csv_reader.loc[row])
-            
-            
-            if(len(csv_reader) -1 == line_count):
-                #add real value to total
-                real_count = real_count + u.data
-                
-                #noise the old user array
-                data = noise(u.data, DP)
-                
-                #add array to total array
-                noise_count = noise_count + data
-                
-                           
-    # print("\n")
-    line_count += 1
+    start = time.time()
     
-print(f'Processed {line_count} lines.')
-
-
-# pd.DataFrame(real_count[0]).to_csv("day0.csv")
-# pd.DataFrame(real_count[1]).to_csv("day1.csv") 
-# pd.DataFrame(noise_count[0]).to_csv("day0DP.csv")
-# pd.DataFrame(noise_count[1]).to_csv("day1DP.csv") 
-
-#real counts
-n= []
-for x in range(0, num_days):
-    n.append(np.zeros((24, num_sites)))
-n = np.array(n)
-n = n + real_count[0]
-
-m = [np.zeros((num_sites))]
-for row in n[0]:
-    m = m + row
-
-ts = pd.Series(m[0])
-ts = np.transpose(ts)
-
-#dp counts
-n= []
-for x in range(0, num_days):
-    n.append(np.zeros((24, num_sites)))
-
-n = np.array(n)
-n = n + noise_count[0]
-
-m = [np.zeros((num_sites))]
-for row in n[0]:
-    m = m + row
-ds = pd.Series(m[0])
-ds = np.transpose(ds)
-
-fig, axs = plt.subplots(2,1)
-fig.suptitle(F"DP value: {e}")
-axs[0].plot(ts)
-axs[0].set_xlabel('Location')
-axs[0].set_ylabel('Visits (clean)')
-axs[1].plot(ds)
-axs[1].set_xlabel('Location')
-axs[1].set_ylabel('Visits (noised)')
-plt.show()     
-
-### SORTING ALGORITHM (CLEAN) ###       
-dict_ts = {0:1}
-for v in range(len(ts)):
-        dict_ts[v] = ts[v]
-dicts_ts = sorted(dict_ts.items(), key = lambda kv:kv[1], reverse = True)
-x = 0 
-print("top 10 max occupancies (CLEAN):")
-while (x<10):
-    print(f'{x+1}: loc: {dicts_ts[x][0]} pop: {dicts_ts[x][1]}')
-    x = x + 1        
+    #real_count: data[day_index][hour][loc_id]
+    for x in range(0, num_days):
+        real_count.append(np.zeros((24, num_sites))) 
+        
+    real_count = np.array(real_count)
+    noise_count = np.array(real_count)
     
-### SORTING ALGORITHM (NOISED) ###
-dict_ds = {0:1}
-for v in range(len(ds)):
-        dict_ds[v] = ds[v]
-dicts_ds = sorted(dict_ds.items(), key = lambda kv:kv[1], reverse = True)
-x = 0 
-print("top 10 max occupancies (NOISED):")
-while (x<10):
-    print(f'{x+1}: loc: {dicts_ds[x][0]} pop: {dicts_ds[x][1]}')
-    x = x + 1        
-y = 0
-for w in range(10):
-    for x in range(10):
-        if (dicts_ts[w][0] == dicts_ds[x][0]):
-            y = y + 1 
-print(f'score: {y}')
+    # Section takes CSV data and stores to 2-D per-user array (24hrsx1000loc)
+    #dummy.csv is a two-day compiled list of user movement logs
+    
+    csv_reader = pd.read_csv('dummy.csv', parse_dates=True)        #switched to pandas dataframe for easier parsing
+    #sort id from smallest to largest
+    csv_reader = csv_reader.set_index(['PERSON_ID']).sort_index()
+    print(csv_reader)
+    csv_reader['TIME'] = pd.to_datetime(csv_reader.TIME)
+    csv_reader.to_csv('sorted_dummy.csv')
+    
+    
+    csv_reader = pd.read_csv('sorted_dummy.csv', parse_dates=True)   
+    csv_reader['TIME'] = pd.to_datetime(csv_reader.TIME)
+    
+    line_count = 0
+    name = ""
+    noise_cnt = 0
+    
+    #MULTI-processing part
+    import concurrent.futures 
+    
+    
+    
+                
+    
+    user_processing_no = 0
+    
+    list_of_users_processed = []
+    mylist = []
+    
+    
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        #f1 = executor.submit(noise, u.data)
+        for row in range(len(csv_reader)):
+            print(row)
+            if(line_count == 0):
+                print(csv_reader.loc[row])
+                u = User(int(csv_reader.loc[row][0]))
+                name = str(csv_reader.loc[row][1])
+                fill_data(u.data, csv_reader.loc[row])
+            else:
+                if(csv_reader.loc[row][1] != name):
+                    print("Processing User # " + str(user_processing_no) )
+                    user_processing_no += 1    
+                
+                    noise_cnt += 1
+                    
+                    #add real value to total
+                    real_count = real_count + u.data
+                    
+                    #schedule a worker to work on the noising of this user's logs
+                    mylist.append(executor.submit(work, u.data, DP, user_processing_no))    
+
+                    
+                    del u
+                    
+                    u = User(int(csv_reader.loc[row][0]))
+                    name = str(csv_reader.loc[row][1])
+                    fill_data(u.data, csv_reader.loc[row])
+                else:
+                    name = str(csv_reader.loc[row][1])
+                    fill_data(u.data, csv_reader.loc[row])
+                    
+                    
+                    if(len(csv_reader) -1 == line_count):
+                        print("Processing User # " + str(user_processing_no) )
+                        user_processing_no += 1    
+                        #add real value to total
+                        real_count = real_count + u.data
+                        
+                        #schedule a worker to work on the noising of this user's logs
+                        mylist.append(executor.submit(work, u.data, DP, user_processing_no))       
+                        
+
+                        
+                                   
+            # print("\n")
+            line_count += 1
+        print("Printing results...")
+        for result in concurrent.futures.as_completed(mylist):
+            #list_of_users_processed.append(result.result())
+            noise_count += result.result()
+    
+        
+    print(f'Processed {line_count} lines.')
+    
+    
+    # pd.DataFrame(real_count[0]).to_csv("day0.csv")
+    # pd.DataFrame(real_count[1]).to_csv("day1.csv") 
+    # pd.DataFrame(noise_count[0]).to_csv("day0DP.csv")
+    # pd.DataFrame(noise_count[1]).to_csv("day1DP.csv") 
+    
+    #real counts
+    n= []
+    for x in range(0, num_days):
+        n.append(np.zeros((24, num_sites)))
+    n = np.array(n)
+    n = n + real_count[0]
+    
+    m = [np.zeros((num_sites))]
+    for row in n[0]:
+        m = m + row
+    
+    ts = pd.Series(m[0])
+    ts = np.transpose(ts)
+    
+    #dp counts
+    n= []
+    for x in range(0, num_days):
+        n.append(np.zeros((24, num_sites)))
+    
+    n = np.array(n)
+    n = n + noise_count[0]
+    
+    m = [np.zeros((num_sites))]
+    for row in n[0]:
+        m = m + row
+    ds = pd.Series(m[0])
+    ds = np.transpose(ds)
+    
+    fig, axs = plt.subplots(2,1)
+    fig.suptitle(F"DP value: {e}")
+    axs[0].plot(ts)
+    axs[0].set_xlabel('Location')
+    axs[0].set_ylabel('Visits (clean)')
+    axs[1].plot(ds)
+    axs[1].set_xlabel('Location')
+    axs[1].set_ylabel('Visits (noised)')
+    plt.show()     
+    
+    ### SORTING ALGORITHM (CLEAN) ###       
+    dict_ts = {0:1}
+    for v in range(len(ts)):
+            dict_ts[v] = ts[v]
+    dicts_ts = sorted(dict_ts.items(), key = lambda kv:kv[1], reverse = True)
+    x = 0 
+    print("top 10 max occupancies (CLEAN):")
+    while (x<10):
+        print(f'{x+1}: loc: {dicts_ts[x][0]} pop: {dicts_ts[x][1]}')
+        x = x + 1        
+        
+    ### SORTING ALGORITHM (NOISED) ###
+    dict_ds = {0:1}
+    for v in range(len(ds)):
+            dict_ds[v] = ds[v]
+    dicts_ds = sorted(dict_ds.items(), key = lambda kv:kv[1], reverse = True)
+    x = 0 
+    print("top 10 max occupancies (NOISED):")
+    while (x<10):
+        print(f'{x+1}: loc: {dicts_ds[x][0]} pop: {dicts_ds[x][1]}')
+        x = x + 1        
+    y = 0
+    for w in range(10):
+        for x in range(10):
+            if (dicts_ts[w][0] == dicts_ds[x][0]):
+                y = y + 1 
+    print(f'score: {y}')
+    
+    # end time
+    end = time.time()
+    
+    # total time taken
+    print(f"Runtime of the program is {end - start}")
+    

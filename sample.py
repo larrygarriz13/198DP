@@ -12,8 +12,8 @@ from trumania.core.util_functions import make_random_bipartite_data, setup_loggi
 from trumania.core.operations import FieldLogger, Apply
 from trumania.core.clock import CyclicTimerGenerator, CyclicTimerProfile
 
-num_user = 300
-num_sites = 10
+num_user = 100
+num_sites = 100
 hrs = "48h"
 #2 days
 
@@ -27,7 +27,7 @@ example1 = circus.Circus(
     step_duration=pd.Timedelta("1h"))
 
 person = example1.create_population(
-    name="person", size=1000,
+    name="person", size=100,
     ids_gen=SequencialGenerator(prefix=""))
 
 person.create_attribute(
