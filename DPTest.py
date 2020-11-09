@@ -32,7 +32,7 @@ start_date = "2020-08-09"
 end_date = "2020-08-12"
 num_days = 4
 num_sites = 100
-num_user = 100
+num_user = 600
 
 noise_count = []
 real_count = []
@@ -230,7 +230,7 @@ if __name__ == "__main__":
     
     list_of_users_processed = []
     mylist = []
-    
+    users_remaining = num_user
     
     with concurrent.futures.ProcessPoolExecutor() as executor:
         #f1 = executor.submit(noise, u.data)
@@ -282,6 +282,8 @@ if __name__ == "__main__":
         print("Printing results...")
         for result in concurrent.futures.as_completed(mylist):
             #list_of_users_processed.append(result.result())
+            users_remaining = users_remaining - 1
+            print("1 Work finished, Users remaining: ." + str(users_remaining))
             noise_count += result.result()
     
         
