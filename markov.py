@@ -4,7 +4,7 @@ import weightgen
 from numpy.random import choice
 Population = []
 
-PopSize = 1000              #SCALABILITY PARAMETERS
+PopSize = 600              #SCALABILITY PARAMETERS
 Beacons = 100               #TO BE VARIED DURING TESTING
 
 #PERSON CLASS STRUCTURE
