@@ -4,8 +4,9 @@ import weightgen
 from numpy.random import choice
 Population = []
 
-PopSize = 1000              #SCALABILITY PARAMETERS
-Beacons = 100               #TO BE VARIED DURING TESTING
+PopSize = 17316             #SCALABILITY PARAMETERS
+Beacons = 625               #TO BE VARIED DURING TESTING
+                            #Note: weightgen.py reads these values from the CSV based on amount of people and beacons. Could pass the info back to markov.py during init to remove need to hard code these values here
 
 #PERSON CLASS STRUCTURE
 class Person:
@@ -19,11 +20,13 @@ class Person:
         self.lastLog = 0
         self.currentBldg = -1                               #allows us to force exit at end of day
 
-# INITIALIZATION OF LOCATION-WEIGHT PAIR (and other parameters also now)
+# INITIALIZATION OF LOCATION-WEIGHT PAIR (and other parameters)
+#NOTE: Observed RAM consumption: 1.8GB for 17316 students
 for x in range(PopSize):
+    print(f"generating person: id = {x}")
     Population.append(Person(x))
 
-df = pd.read_csv('output/example1/dummy.csv', parse_dates=True)         
+df = pd.read_csv('output/example1/dummy.csv', parse_dates=True)         #dummy.csv: sample.py Trumania output 
 print(df)       #access the trumania output
 
 df['TIME'] = pd.to_datetime(df.TIME)
@@ -31,17 +34,22 @@ df['TIME'] = pd.to_datetime(df.TIME)
 
 for x in range(len(df.index)):
     pid = int(df.loc[x][0])
-    #print(pid)
+    print(x)
 
-    #print(f"date as retreived: {df.loc[x][3].day}")
 
     if df.loc[x]["TIME"].day != Population[pid].date:
-        Population[pid].weights = weightgen.weight(pid, out=True)
+        #print("cleaning")
+        if Population[pid].currentBldg == Population[pid].home:
+            mult = 2
+        else:
+            mult = 1
+        Population[pid].weights = weightgen.weight(pid, out=True, multiplier = mult, skip = Population[pid].currentBldg)
+        Population[pid].weights[Population[pid].currentBldg] = 0
         Population[pid].date = df.loc[x]["TIME"].day
         #here we 'repair' the previous log by ensuring the student leaves school at the end of the day
-        df.at[Population[pid].lastLog,'LOCATION'] = Population[pid].currentBldg
+        df.at[Population[pid].lastLog,'LOCATION'] = Population[pid].currentBldg                     #takes the last log and sets it to bldg exit
         Population[pid].prev = -1
-
+    #print(f"Drawing Person: {df.loc[x][1]}")
     draw = choice(Population[pid].locs, size=1,p=np.ndarray.tolist(Population[pid].weights))        #Core of the script; randomly selects the visited location
     df.at[x,'LOCATION'] = draw                                                                         #write location back to dataframe
     #print(f"Person: {df.loc[x][1]} Visited location: {draw}")
@@ -54,6 +62,4 @@ for x in range(len(df.index)):
 
     #print(df) 
 
-
 df.to_csv('dummy.csv', index=False)
-
