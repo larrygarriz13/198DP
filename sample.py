@@ -12,13 +12,17 @@ from trumania.core.util_functions import make_random_bipartite_data, setup_loggi
 from trumania.core.operations import FieldLogger, Apply
 from trumania.core.clock import CyclicTimerGenerator, CyclicTimerProfile
 
-num_user = 100
+num_user = 2
 hrs = "48h"
 #4 days
 
 #for changing num logs per user per hour
 #2 logs per hr = 0.5h, 5 logs per hour = 1/5=0.2h
-step_dur = "0.5h"
+num_log_per_hr = 1
+val = 1/num_log_per_hr
+step_dur = "{0}h".format(val)
+#7am-7pm = 13 hrs
+num_log = 13*(num_log_per_hr)
 
 setup_logging()
 start_date = pd.Timestamp("09 Aug 2020 00:00:00")
@@ -108,7 +112,7 @@ story_timer_gen = CyclicTimerGenerator(
 
 low_activity = story_timer_gen.activity(n=10, per=pd.Timedelta("1 day"))
 med_activity = story_timer_gen.activity(n=15, per=pd.Timedelta("1 day"))
-high_activity = story_timer_gen.activity(n=20, per=pd.Timedelta("1 day"))
+high_activity = story_timer_gen.activity(n=num_log, per=pd.Timedelta("1 day"))
 
 activity_gen = NumpyRandomGenerator(
     method="choice", 
