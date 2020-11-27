@@ -136,7 +136,7 @@ def noise(data, DP): #possibly use start and limit to define a range, allow mult
             #if(l==1):    
             #above section commented out; current implementation is to noise all hours wether log is present or not
             for c in range(len(data[a][b])): #site
-                d = int(np.random.binomial(1, 1))
+                d = int(np.random.binomial(1, DP, 1))
                 if(d==1):
                  
                   #[solution 1]: 50% noise negative 
